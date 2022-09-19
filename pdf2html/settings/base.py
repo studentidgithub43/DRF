@@ -103,3 +103,11 @@ REST_FRAMEWORK = {
         'knox.auth.TokenAuthentication',
     ]
 }
+
+# EMAIL
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_PASSWORD = "cjyywgpnkrrqiutu"
+EMAIL_HOST_USER = "dukandaronline06@gmail.com"
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
