@@ -111,3 +111,6 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_PASSWORD = "cjyywgpnkrrqiutu"
 EMAIL_HOST_USER = "dukandaronline06@gmail.com"
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+# WEB
+WEB_URL = "http://127.0.0.1:8000"

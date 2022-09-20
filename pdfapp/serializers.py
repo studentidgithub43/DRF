@@ -1,11 +1,19 @@
+from .models import Guest, Document
 from rest_framework import serializers
 from django.contrib.auth.models import User
+
 
 # User Serializer
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email')
+
+# Guests Serializer
+class GuestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Guest
+        fields = ('id', 'email')
 
 # Register Serializer
 class RegisterSerializer(serializers.ModelSerializer):
@@ -22,3 +30,9 @@ class RegisterSerializer(serializers.ModelSerializer):
             is_active = False
             )
         return user
+    
+# Document Serializer
+class DocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ('id', 'document', 'email', 'username')
