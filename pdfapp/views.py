@@ -1,7 +1,8 @@
 import os
-from .models import Guest
+from django.db.models import F
 from django.conf import settings
 from knox.models import AuthToken
+from django.http import JsonResponse
 from django.contrib.auth import login
 from django.core.mail import send_mail
 from knox.auth import TokenAuthentication
@@ -11,7 +12,9 @@ from rest_framework import generics, permissions
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.serializers import AuthTokenSerializer
-from .serializers import UserSerializer, RegisterSerializer, GuestSerializer, DocumentSerializer
+from .models import Guest, Document, GuestVisit, DocumentPageVisit, Account
+from .serializers import UserSerializer, RegisterSerializer, GuestSerializer, DocumentSerializer, GuestVisitSerializer, DocumentPageVisitSerializer
+from .serializers import AccountSerializer
 
 # Login API
 class LoginAPI(KnoxLoginView):
@@ -22,6 +25,7 @@ class LoginAPI(KnoxLoginView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         login(request, user)
+        Account.objects.filter(user__username=request.data.get("username")).update(total_login=F('total_login') + 1)
         return super(LoginAPI, self).post(request, format=None)
 
 # Register API
@@ -40,7 +44,14 @@ class RegisterAPI(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        self.email(request.data.get('email'))
+        _user = User.objects.get(username=request.data.get('username'))
+        account_serializer = AccountSerializer(data={
+            "account_type": request.data.get("type"),
+            "user": _user.id
+        })
+        account_serializer.is_valid(raise_exception=True)
+        account_serializer.save()
+        # self.email(request.data.get('email'))
         return Response({
         "user": UserSerializer(user, context=self.get_serializer_context()).data,
         "token": AuthToken.objects.create(user)[1]
@@ -91,38 +102,108 @@ class GuestAPI(generics.GenericAPIView):
     
 # Document Upload API
 class DocumentUploadAPI(generics.GenericAPIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAuthenticated]
     serializer_class = DocumentSerializer
     
     def post(self, request, *args, **kwargs):
         try:
-            _username = request.data.get("username", None)
-            _email = request.data.get("email", None)
-            if _username != None:
-                _user = User.objects.filter(username = _username)
-                if _user: 
-                    _user = _user[0]
-                    data_to_save = request.data
-                    data_to_save['username'] = _user.id  
-                    serializer = self.get_serializer(data=data_to_save)
-                    serializer.is_valid(raise_exception=True)
-                    serializer.save()
-                    return Response({"message": "Document has been saved.", "mode": "USER", "status": 200})
-                else:
-                    return Response({"message": "Particular User not found.", "mode": "USER", "status": 404})
-            elif _email != None:
-                _guest = Guest.objects.filter(email = _email)
-                if _guest: 
-                    _guest = _guest[0]
-                    data_to_save = request.data
-                    data_to_save['email'] = _guest.id  
-                    serializer = self.get_serializer(data=data_to_save)
-                    serializer.is_valid(raise_exception=True)
-                    serializer.save()
-                    return Response({"message": "Document has been saved.", "mode": "GUEST", "status": 200})
-                else:
-                    return Response({"message": "Particular Guest not found.", "mode": "GUEST", "status": 404})
-            else:
-                return Response({"message": "Must provide email or username.", "status": 404})
-        except Exception as e:
-            print(str(e))
+            data_to_save = request.data
+            data_to_save['username'] = request.user.id  
+            serializer = self.get_serializer(data=data_to_save)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            Account.objects.filter(user__username=request.user.username).update(total_document=F('total_document') + 1)
+            return Response({"message": "Document has been saved.", "status": 200})
+        except Exception as e: 
+            if "Unsupported file extension." in str(e):
+                return Response({"message": "Accept only PDF.", "status": 404})
             return Response({"message": "Document has not been saved.", "status": 404})
+
+# Get all Documents
+class DocumentsViewAPI(generics.GenericAPIView):
+    def get(self, request, *args, **kwargs):
+        documents = [
+            {
+                "uuid": doc.uuid,
+                "document": doc.document.path,
+                "username": doc.username.username,
+                "created_at": doc.created_at
+            }
+            for doc in Document.objects.all()
+            ]
+        return JsonResponse(documents, safe=False)
+
+class GuestVisitsViewAPI(generics.GenericAPIView):
+    serializer_class = GuestVisitSerializer
+    
+    def get(self, request, *args, **kwargs):
+        return JsonResponse([
+            {
+                "uuid": gv.uuid,
+                "email": gv.email.email,
+                "doc_path": gv.doc_id.document.path,
+                "doc_id": gv.doc_id.uuid,
+                "viewed_time": gv.viewed_time,
+                "created_at": gv.created_at
+            }
+            for gv in GuestVisit.objects.all()
+            ], safe=False)
+    
+    def post(self, request, *args, **kwargs):
+        _doc_id = request.data.get("doc_id", None)
+        _email = request.data.get("email", None)
+        _doc = Document.objects.filter(uuid=_doc_id)
+        _guest = Guest.objects.filter(email=_email)
+        if not _doc:
+            return Response({"message": "Wrong Document ID", "status": 404})
+        if not _guest:
+            return Response({"message": "Wrong Guest Email", "status": 404})
+        try:
+            data_to_save = request.data
+            data_to_save['email'] = _guest[0].id
+            data_to_save['doc_id'] = _doc[0].id
+            serializer = self.get_serializer(data=data_to_save)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response({"message": "Changes have been saved.", "status": 200})
+        except Exception as e:
+            return Response({"message": "Changes have not been saved.", "status": 404})
+            
+            
+# Document Page Visit API
+class DocumentPageVisitAPIView(generics.GenericAPIView):
+    serializer_class = DocumentPageVisitSerializer
+    def get(self, request, *args, **kwargs):
+        return JsonResponse([
+            {
+                "uuid": dpv.uuid,
+                "email": dpv.email.email,
+                "doc_path": dpv.doc_id.document.path,
+                "doc_id": dpv.doc_id.uuid,
+                "page_num": dpv.page_num,
+                "time_spent": dpv.time_spent,
+                "created_at": dpv.created_at
+            }
+            for dpv in DocumentPageVisit.objects.all()
+            ], safe=False)
+    
+    def post(self, request, *args, **kwargs):
+        _doc_id = request.data.get("doc_id", None)
+        _email = request.data.get("email", None)
+        _doc = Document.objects.filter(uuid=_doc_id)
+        _guest = Guest.objects.filter(email=_email)
+        if not _doc:
+            return Response({"message": "Wrong Document ID", "status": 404})
+        if not _guest:
+            return Response({"message": "Wrong Guest Email", "status": 404})
+        try:
+            data_to_save = request.data
+            data_to_save['email'] = _guest[0].id
+            data_to_save['doc_id'] = _doc[0].id
+            serializer = self.get_serializer(data=data_to_save)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response({"message": "Changes have been saved.", "status": 200})
+        except Exception as e:
+            return Response({"message": "Changes have not been saved.", "status": 404})

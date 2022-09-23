@@ -1,4 +1,6 @@
 import os
+import random
+import hashlib
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -93,11 +95,12 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS =[os.path.join(BASE_DIR, 'static'),]
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-MEDIA_URL = '/documents/'
+MEDIA_URL = os.path.join('/documents/', hashlib.md5(str(random.randint(0, 999999)).encode('utf-8')).hexdigest(), '/')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'documents/')
 
+# Authentication System
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'knox.auth.TokenAuthentication',
@@ -114,3 +117,6 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 # WEB
 WEB_URL = "http://127.0.0.1:8000"
+
+# Default Auto Field
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'
