@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,900&display=swap');
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Lato', sans-serif;
+}
+html, body{
+    height: 100%;
+}
+.main{
+    background: #FFFFFF;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+.main .header{
+    position: fixed;
+    top: 10px;
+    left: 20px;
+    font-size: 30px;
+    font-weight: 900;
+    margin-bottom: 2rem;
+}
+.main .header span{
+    color: #2B68CB;
+}
+.main .fields {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.main .fields .field{
+    padding: 0px 20px;
+    color: gray;
+    width: 30rem;
+    height: 40px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    outline: none;
+    border-radius: 25px;
+    margin-bottom: 0.7rem;
+    background: #FFFFFF;
+}
+.main .fields .field:focus{
+    outline: none;
+}
+.main .button{
+    margin-top: 1rem;
+    background: #2B68CB;
+    padding: 10px 30px;
+    color: #FFFFFF;
+    border-radius: 25px;
+    cursor: pointer;
+}
+.main .title{
+    font-size: 25px;
+    margin-bottom: 1.5rem;
+}
+@media screen and (max-width: 600px){
+    .main .fields .field{
+        width: 24rem;
+        height: 40px;
+    }
+}
+@media screen and (max-width: 450px){
+    .main .fields .field{
+        width: 18rem;
+        height: 40px;
+    }
+}

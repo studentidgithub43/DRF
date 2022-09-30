@@ -14,6 +14,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     "knox",
     'pdfapp',
+    'corsheaders',
     "rest_framework",
     'django.contrib.admin',
     'django.contrib.auth',
@@ -24,12 +25,13 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -95,7 +97,9 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, '..', 'static'),
+)
 
 MEDIA_URL = os.path.join('/documents/', hashlib.md5(str(random.randint(0, 999999)).encode('utf-8')).hexdigest(), '/')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'documents/')
@@ -120,3 +124,6 @@ WEB_URL = "http://127.0.0.1:8000"
 
 # Default Auto Field
 DEFAULT_AUTO_FIELD='django.db.models.AutoField'
+
+# CORS ORIGINS
+CORS_ALLOW_ALL_ORIGINS = True

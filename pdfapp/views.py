@@ -41,6 +41,9 @@ class RegisterAPI(generics.GenericAPIView):
         return
     
     def post(self, request, *args, **kwargs):
+        user = User.objects.filter(username=request.data.get("username"))
+        if user:
+            return Response({"message": "User already found.", "status": 400})
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -78,7 +81,6 @@ class PasswordResetAPI(generics.GenericAPIView):
     
     def post(self, request, *args, **kwargs):
         password = request.data.get("password")
-        print(password)
         if password != None:
             _user = request.user
             _user.set_password(password)

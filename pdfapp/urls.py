@@ -3,8 +3,16 @@ from django.urls import path
 from knox.views import LogoutView as KnoxLogoutView
 from .views import RegisterAPI, LoginAPI, ValidateAPI, PasswordResetAPI, GuestAPI, DocumentUploadAPI, DocumentsViewAPI, DocumentPageVisitAPIView
 from .views import GuestVisitsViewAPI
+from .templateviews import Dashboard, ResetPassword, Login, Guest, Register
 
 urlpatterns = [
+    # TEMPLATE VIEWS URLS
+    path('login', Login.as_view(), name="loginT"),
+    path('guest', Guest.as_view(), name="guestT"),
+    path('reset', ResetPassword.as_view(), name="resetT"),
+    path('register', Register.as_view(), name="registerT"),
+    path('', Dashboard.as_view(), name="dashboard"),
+    # API VIEWS URLS
     path('api/login/', LoginAPI.as_view(), name='login'),
     path('api/register/', RegisterAPI.as_view(), name='register'),
     path('api/logout/', KnoxLogoutView.as_view(), name='logout'),

@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,900&display=swap');
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Lato', sans-serif;
+}
+html, body{
+    height: 100%;
+}
+.main{
+    background: #FFFFFF;
+    height: 100vh;
+    overflow-x: hidden;
+}
+
+.main .header{
+    background: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    font-size: 25px;
+    font-weight: 900;
+    padding: 0px 20px;
+    box-shadow: rgba(149, 157, 165, 0.1) 0px 8px 24px;
+}
+.main .header span{
+    color: #2B68CB;
+}
+.main .header .logout{
+    background: #2B68CB;
+    color: #FFFFFF;
+    font-weight: 500;
+    font-size: 17px;
+    cursor: pointer;
+    padding: 7px 18px;
+    border-radius: 5px;
+}
+.main .container{
+    background: black;
+    height: 100%;
+    display: flex;
+}
+.main .container .aside{
+    background: red;
+    width:30%;
+    height: 100%;
+    transition: all 0.5s ease-in-out;
+}
+.main .container .content{
+    background: green;
+    width: 100%;
+    height: 100%;
+}
+@media screen and (max-width: 950px){
+    .main .container .aside{
+        width:40%;
+    } 
+}
+@media screen and (max-width: 650px){
+    .main .container .aside{
+        width:50%;
+    } 
+}
